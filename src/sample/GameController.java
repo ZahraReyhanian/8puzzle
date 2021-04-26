@@ -1,5 +1,6 @@
 package sample;
 
+import javafx.application.Platform;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
@@ -11,6 +12,8 @@ import javafx.scene.control.Label;
 import javafx.scene.layout.GridPane;
 
 import java.util.EventListener;
+import java.util.LinkedList;
+import java.util.List;
 
 public class GameController extends GridPane {
 
@@ -18,13 +21,23 @@ public class GameController extends GridPane {
     public GridPane startPane;
     public GridPane endPane;
     public GridPane currentPane;
-    public Label whiteLbl;
+    public Button whiteLbl;
     private int currentNum;
+    private Integer[][] start ;
+    private Integer[][] end ;
 
     @FXML
     public void initialize(){
         this.currentNum = 1;
         this.currentPane = startPane;
+        start = new Integer[3][3];
+        end = new Integer[3][3];
+        for (int i = 0; i < 3; i++) {
+            for (int j = 0; j < 3; j++) {
+                start[i][j] = 0;
+                end[i][j] = 0;
+            }
+        }
     }
 
     private void myFunc(javafx.event.ActionEvent actionEvent) {
@@ -32,13 +45,15 @@ public class GameController extends GridPane {
     }
 
 
-    public void leftEvent(javafx.event.ActionEvent actionEvent) {
-        Label temp = whiteLbl;
+    public void leftEvent() {
+        Button temp = whiteLbl;
         int column = getColumnIndex(temp);
         int row = getRowIndex(temp);
 
-        Label tt = (Label) getNodeByRowColumnIndex(row , column - 1);
+        Button tt = (Button) getNodeByRowColumnIndex(row , column - 1);
+        System.out.println("lefffft");
         if (tt != null){
+            System.out.println("left done");
             startPane.getChildren().remove(temp);
             startPane.getChildren().remove(tt);
             startPane.add(temp, column - 1, row);
@@ -48,12 +63,12 @@ public class GameController extends GridPane {
 
     }
 
-    public void upEvent(ActionEvent actionEvent) {
-        Label temp = whiteLbl;
+    public void upEvent() {
+        Button temp = whiteLbl;
         int column = getColumnIndex(temp);
         int row = getRowIndex(temp);
 
-        Label tt = (Label) getNodeByRowColumnIndex(row - 1, column );
+        Button tt = (Button) getNodeByRowColumnIndex(row - 1, column );
         if (tt != null){
             startPane.getChildren().remove(temp);
             startPane.getChildren().remove(tt);
@@ -62,12 +77,12 @@ public class GameController extends GridPane {
         }
     }
 
-    public void downEvent(ActionEvent actionEvent) {
-        Label temp = whiteLbl;
+    public void downEvent() {
+        Button temp = whiteLbl;
         int column = getColumnIndex(temp);
         int row = getRowIndex(temp);
 
-        Label tt = (Label) getNodeByRowColumnIndex(row + 1 , column);
+        Button tt = (Button) getNodeByRowColumnIndex(row + 1 , column);
         if (tt != null){
             startPane.getChildren().remove(temp);
             startPane.getChildren().remove(tt);
@@ -76,13 +91,15 @@ public class GameController extends GridPane {
         }
     }
 
-    public void rightEvent(ActionEvent actionEvent) {
-        Label temp = whiteLbl;
+    public void rightEvent() {
+        Button temp = whiteLbl;
         int column = getColumnIndex(temp);
         int row = getRowIndex(temp);
 
-        Label tt = (Label) getNodeByRowColumnIndex(row , column + 1);
+        Button tt = (Button) getNodeByRowColumnIndex(row , column + 1);
+        System.out.println("right");
         if (tt != null){
+            System.out.println("right done");
             startPane.getChildren().remove(temp);
             startPane.getChildren().remove(tt);
             startPane.add(temp, column + 1, row);
@@ -115,10 +132,17 @@ public class GameController extends GridPane {
                     Button btn = (Button) node;
                     btn.setText(num);
                     found = true;
+                    if(currentPane == startPane){
+                        start[startPane.getRowIndex(btn)][startPane.getColumnIndex(btn)] = currentNum;
+                    }
+                    else {
+                        end[endPane.getRowIndex(btn)][endPane.getColumnIndex(btn)] = currentNum;
+                    }
                     break;
                 }
             }
         }
+
         if(found || currentNum == 9){
             currentNum ++;
             if(currentNum == 10 && currentPane == startPane){
@@ -127,6 +151,46 @@ public class GameController extends GridPane {
             }
         }
 
+
+    }
+
+    public void startBFS(ActionEvent actionEvent) throws InterruptedException {
+        BFS bfs = new BFS(start, end);
+        bfs.solve();
+        List<sample.Node> nodes = new LinkedList();
+        sample.Node child = bfs.getCurrentNode();
+
+        while (child.getParent() != null){
+            nodes.add(child);
+            child = child.getParent();
+        }
+
+        System.out.println(nodes.size());
+        new Thread(()->{ //use another thread so long process does not block gui
+            while (nodes.size() != 0){
+                int k = nodes.size() - 1;
+                System.out.println("k : "+k);
+                sample.Node currentNode = nodes.get(k);
+                whiteLbl = (Button) this.getNodeByRowColumnIndex(currentNode.getI(), currentNode.getJ());
+                if(currentNode.getDirection() == sample.Node.Direction.Right){
+                    Platform.runLater(() -> this.leftEvent());
+                }
+                else if(currentNode.getDirection() == sample.Node.Direction.Left){
+                    Platform.runLater(() -> this.rightEvent());
+                }
+                else if(currentNode.getDirection() == sample.Node.Direction.TOP){
+                    Platform.runLater(() -> this.downEvent());
+                }
+                else if(currentNode.getDirection() == sample.Node.Direction.Bottom){
+                    Platform.runLater(() -> this.upEvent());
+                }
+                nodes.remove(currentNode);
+                try {Thread.sleep(1000);} catch (InterruptedException ex) { ex.printStackTrace();}
+            }
+
+        }).start();
+
+        System.out.println("exit!");
 
     }
 }
