@@ -6,11 +6,20 @@ import java.util.List;
 public class Node {
     private Node next;
     private Integer[][] states;
-    private List<Node> neighbors = new ArrayList<>();
+    private List<Node> neighbors ;
     private int cost = 0;
     private int i; //row number of space
     private int j; //column number of space
     private Node parent = null;
+    private int depth;
+
+    public int getDepth() {
+        return depth;
+    }
+
+    public void setDepth(int depth) {
+        this.depth = depth;
+    }
 
     enum Direction {
         TOP,
@@ -85,6 +94,7 @@ public class Node {
     }
 
     public List<Node> getNeighbors() {
+        neighbors = new ArrayList<>();
         getLeftNeighbor();
         getRightNeighbor();
         getTopNeighbor();

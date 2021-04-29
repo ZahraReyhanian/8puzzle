@@ -1,5 +1,6 @@
 package sample;
 
+import com.sun.deploy.panel.JavaPanel;
 import javafx.application.Platform;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
@@ -11,6 +12,7 @@ import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.layout.GridPane;
 
+import javax.swing.*;
 import java.util.EventListener;
 import java.util.LinkedList;
 import java.util.List;
@@ -156,7 +158,10 @@ public class GameController extends GridPane {
 
     public void startBFS(ActionEvent actionEvent) throws InterruptedException {
         BFS bfs = new BFS(start, end);
-        bfs.solve();
+        if(!bfs.solve()){
+            JOptionPane.showMessageDialog(null, "Not Found !");
+            return;
+        }
         List<sample.Node> nodes = new LinkedList();
         sample.Node child = bfs.getCurrentNode();
 
@@ -192,5 +197,69 @@ public class GameController extends GridPane {
 
         System.out.println("exit!");
 
+    }
+
+    public void reset(ActionEvent actionEvent) {
+        this.currentNum = 1;
+        this.currentPane = startPane;
+        for (int i = 0; i < 3; i++) {
+            for (int j = 0; j < 3; j++) {
+                start[i][j] = 0;
+                end[i][j] = 0;
+            }
+        }
+        ObservableList<Node> children = startPane.getChildren();
+        for (Node node : children) {
+            Button btn = (Button) node;
+            btn.setText("");
+        }
+        children = endPane.getChildren();
+        for (Node node : children) {
+            Button btn = (Button) node;
+            btn.setText("");
+        }
+
+    }
+
+    public void startIDS(ActionEvent actionEvent) {
+        IDS ids = new IDS(start, end, 20);
+        if(!ids.solve()){
+            JOptionPane.showMessageDialog(null, "Not Found !");
+            return;
+        }
+        List<sample.Node> nodes = new LinkedList();
+        sample.Node child = ids.getCurrentNode();
+
+        while (child.getParent() != null){
+            nodes.add(child);
+            child = child.getParent();
+        }
+
+        System.out.println(nodes.size());
+        new Thread(()->{ //use another thread so long process does not block gui
+            while (nodes.size() != 0){
+                int k = nodes.size() - 1;
+                System.out.println("k : "+k);
+                sample.Node currentNode = nodes.get(k);
+                whiteLbl = (Button) this.getNodeByRowColumnIndex(currentNode.getI(), currentNode.getJ());
+                if(currentNode.getDirection() == sample.Node.Direction.Right){
+                    Platform.runLater(() -> this.leftEvent());
+                }
+                else if(currentNode.getDirection() == sample.Node.Direction.Left){
+                    Platform.runLater(() -> this.rightEvent());
+                }
+                else if(currentNode.getDirection() == sample.Node.Direction.TOP){
+                    Platform.runLater(() -> this.downEvent());
+                }
+                else if(currentNode.getDirection() == sample.Node.Direction.Bottom){
+                    Platform.runLater(() -> this.upEvent());
+                }
+                nodes.remove(currentNode);
+                try {Thread.sleep(1000);} catch (InterruptedException ex) { ex.printStackTrace();}
+            }
+
+        }).start();
+
+        System.out.println("exit!");
     }
 }
