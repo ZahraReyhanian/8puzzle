@@ -88,10 +88,10 @@ public class Queue {
         return this.array.contains(node);
     }
 
-    public boolean containsSameNode(String string) {
+    public Node containsSameNode(String string) {
         for (Node child:this.array) {
-            if (child.toString().equals(string)) return true;
+            if (child.toString().equals(string)) return child;
         }
-        return false;
+        return null;
     }
 }

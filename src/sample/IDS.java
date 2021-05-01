@@ -3,33 +3,17 @@ package sample;
 import java.util.ArrayList;
 import java.util.List;
 
-public class IDS {
-    private Integer[][] initialState ;
-    private Node root;
-    private Node currentNode;
-    private Integer[][] goalState ;
+public class IDS extends Search{
     private Stack fringe ;
-    private List<String> exploredNodes ;
     private int depth;
 
     public IDS(Integer[][] initialState, Integer[][] goalState, int depth){
-        this.initialState = initialState;
-        this.goalState = goalState;
-        int k = 0, l = 0;
-        for (int i = 0; i < 3; i++) {
-            for (int j = 0; j < 3; j++) {
-                if (initialState[i][j] == 0){
-                    k = i;
-                    l = j;
-                    break;
-                }
-            }
-        }
-        this.root = new Node(k, l, initialState);
+        super(initialState, goalState);
         this.root.setDepth(0);
         this.depth = depth;
     }
 
+    @Override
     public boolean solve(){
         boolean solved = false;
         for (int i = 0; i < this.depth; i++) {
@@ -77,62 +61,6 @@ public class IDS {
         return solved;
     }
 
-    private boolean gloalReached() {
-        boolean success = true;
-
-        for(int i = 0; i < 3; i++)
-        {
-            for(int j = 0; j < 3; j++)
-            {
-                if(!currentNode.getStates()[i][j].equals(goalState[i][j]))
-                {
-                    success = false;
-                    break;
-                }
-
-            }
-            if(success == false)
-            {
-                break;
-            }
-
-        }
-
-        return success;
-    }
-
-    public Integer[][] getInitialState() {
-        return initialState;
-    }
-
-    public void setInitialState(Integer[][] initialState) {
-        this.initialState = initialState;
-    }
-
-    public Node getRoot() {
-        return root;
-    }
-
-    public void setRoot(Node root) {
-        this.root = root;
-    }
-
-    public Node getCurrentNode() {
-        return currentNode;
-    }
-
-    public void setCurrentNode(Node currentNode) {
-        this.currentNode = currentNode;
-    }
-
-    public Integer[][] getGoalState() {
-        return goalState;
-    }
-
-    public void setGoalState(Integer[][] goalState) {
-        this.goalState = goalState;
-    }
-
     public Stack getFringe() {
         return fringe;
     }
@@ -141,11 +69,4 @@ public class IDS {
         this.fringe = fringe;
     }
 
-    public List<String> getExploredNodes() {
-        return exploredNodes;
-    }
-
-    public void setExploredNodes(List<String> exploredNodes) {
-        this.exploredNodes = exploredNodes;
-    }
 }

@@ -69,6 +69,7 @@ public class GameController extends GridPane {
         Button temp = whiteLbl;
         int column = getColumnIndex(temp);
         int row = getRowIndex(temp);
+        System.out.println("up!");
 
         Button tt = (Button) getNodeByRowColumnIndex(row - 1, column );
         if (tt != null){
@@ -231,6 +232,8 @@ public class GameController extends GridPane {
         sample.Node child = ids.getCurrentNode();
 
         while (child.getParent() != null){
+            System.out.println(child.toString());
+            System.out.println(child.getDirection());
             nodes.add(child);
             child = child.getParent();
         }
@@ -241,6 +244,7 @@ public class GameController extends GridPane {
                 int k = nodes.size() - 1;
                 System.out.println("k : "+k);
                 sample.Node currentNode = nodes.get(k);
+                System.out.println(currentNode.getDirection());
                 whiteLbl = (Button) this.getNodeByRowColumnIndex(currentNode.getI(), currentNode.getJ());
                 if(currentNode.getDirection() == sample.Node.Direction.Right){
                     Platform.runLater(() -> this.leftEvent());
@@ -261,5 +265,46 @@ public class GameController extends GridPane {
         }).start();
 
         System.out.println("exit!");
+    }
+
+    public void startBiDir(ActionEvent actionEvent) {
+        BDSearch bd = new BDSearch(start, end);
+        if(!bd.solve()){
+            JOptionPane.showMessageDialog(null, "Not Found !");
+            return;
+        }
+        List<sample.Node> nodes = new LinkedList();
+        sample.Node child = bd.getCurrentNode();
+
+        while (child.getParent() != null){
+            System.out.println(child.toString());
+            System.out.println(child.getDirection());
+            nodes.add(child);
+            child = child.getParent();
+        }
+        new Thread(()->{ //use another thread so long process does not block gui
+            while (nodes.size() != 0){
+                int k = nodes.size() - 1;
+                System.out.println("k : "+k);
+                sample.Node currentNode = nodes.get(k);
+                System.out.println(currentNode.getDirection());
+                whiteLbl = (Button) this.getNodeByRowColumnIndex(currentNode.getI(), currentNode.getJ());
+                if(currentNode.getDirection() == sample.Node.Direction.Right){
+                    Platform.runLater(() -> this.leftEvent());
+                }
+                else if(currentNode.getDirection() == sample.Node.Direction.Left){
+                    Platform.runLater(() -> this.rightEvent());
+                }
+                else if(currentNode.getDirection() == sample.Node.Direction.TOP){
+                    Platform.runLater(() -> this.downEvent());
+                }
+                else if(currentNode.getDirection() == sample.Node.Direction.Bottom){
+                    Platform.runLater(() -> this.upEvent());
+                }
+                nodes.remove(currentNode);
+                try {Thread.sleep(1000);} catch (InterruptedException ex) { ex.printStackTrace();}
+            }
+
+        }).start();
     }
 }
