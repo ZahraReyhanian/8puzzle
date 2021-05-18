@@ -307,4 +307,46 @@ public class GameController extends GridPane {
 
         }).start();
     }
+
+    public void startAStar(ActionEvent actionEvent) {
+        AStar aStar = new AStar(start, end);
+        if(!aStar.solve()){
+            JOptionPane.showMessageDialog(null, "Not Found !");
+            return;
+        }
+        List<sample.Node> nodes = new LinkedList();
+        sample.Node child = aStar.getCurrentNode();
+
+        while (child.getParent() != null){
+            nodes.add(child);
+            child = child.getParent();
+        }
+
+        System.out.println(nodes.size());
+        new Thread(()->{ //use another thread so long process does not block gui
+            while (nodes.size() != 0){
+                int k = nodes.size() - 1;
+                System.out.println("k : "+k);
+                sample.Node currentNode = nodes.get(k);
+                whiteLbl = (Button) this.getNodeByRowColumnIndex(currentNode.getI(), currentNode.getJ());
+                if(currentNode.getDirection() == sample.Node.Direction.Right){
+                    Platform.runLater(() -> this.leftEvent());
+                }
+                else if(currentNode.getDirection() == sample.Node.Direction.Left){
+                    Platform.runLater(() -> this.rightEvent());
+                }
+                else if(currentNode.getDirection() == sample.Node.Direction.TOP){
+                    Platform.runLater(() -> this.downEvent());
+                }
+                else if(currentNode.getDirection() == sample.Node.Direction.Bottom){
+                    Platform.runLater(() -> this.upEvent());
+                }
+                nodes.remove(currentNode);
+                try {Thread.sleep(1000);} catch (InterruptedException ex) { ex.printStackTrace();}
+            }
+
+        }).start();
+
+        System.out.println("exit!");
+    }
 }
